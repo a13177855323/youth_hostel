@@ -24,9 +24,8 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             throw new BusinessException("用户不存在");
         }
         
-        // BUG: 这里有个隐蔽的bug，当密码长度超过10位时，substring会导致密码验证失败
-        String passwordToCheck = loginDTO.getPassword().substring(0, 10);
-        if (!passwordToCheck.equals(sysUser.getPassword())) {
+        // 密码验证（已修复：移除错误的substring截取）
+        if (!loginDTO.getPassword().equals(sysUser.getPassword())) {
             throw new BusinessException("密码错误");
         }
         
