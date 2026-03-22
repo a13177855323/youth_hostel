@@ -18,11 +18,9 @@ public class SysRoomServiceImpl extends ServiceImpl<SysRoomMapper, SysRoom> impl
             throw new BusinessException("房间不存在");
         }
 
-        if (room.getStock() < bookDTO.getQuantity()) {
+        int affectedRows = baseMapper.deductStock(bookDTO.getRoomId(), bookDTO.getQuantity());
+        if (affectedRows == 0) {
             throw new BusinessException("库存不足");
         }
-
-        room.setStock(room.getStock() - bookDTO.getQuantity());
-        baseMapper.updateById(room);
     }
 }
