@@ -132,7 +132,44 @@ CREATE TABLE booking_order (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='预定订单表';
 
 -- =====================================================
--- 4. 基础字典表 (sys_dict)
+-- 4. 钱包表 (sys_wallet)
+-- =====================================================
+DROP TABLE IF EXISTS sys_wallet;
+CREATE TABLE sys_wallet (
+    id              BIGINT          NOT NULL AUTO_INCREMENT COMMENT '钱包ID',
+    user_id         BIGINT          NOT NULL COMMENT '用户ID',
+    balance         DECIMAL(10,2)   NOT NULL DEFAULT 0.00 COMMENT '余额',
+    version         INT             DEFAULT 0 COMMENT '乐观锁版本号',
+    create_time     DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    update_time     DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    deleted         TINYINT         DEFAULT 0 COMMENT '删除标志: 0-未删除 1-已删除',
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_user_id (user_id),
+    KEY idx_deleted (deleted)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='钱包表';
+
+-- =====================================================
+-- 5. 订单表 (sys_order)
+-- =====================================================
+DROP TABLE IF EXISTS sys_order;
+CREATE TABLE sys_order (
+    id              BIGINT          NOT NULL AUTO_INCREMENT COMMENT '订单ID',
+    order_no        VARCHAR(64)     NOT NULL COMMENT '订单编号',
+    user_id         BIGINT          NOT NULL COMMENT '用户ID',
+    total_amount    DECIMAL(10,2)   NOT NULL COMMENT '订单金额',
+    status          TINYINT         DEFAULT 0 COMMENT '状态: 0-待支付 1-已支付',
+    pay_time        DATETIME        DEFAULT NULL COMMENT '支付时间',
+    create_time     DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    update_time     DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    deleted         TINYINT         DEFAULT 0 COMMENT '删除标志: 0-未删除 1-已删除',
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_order_no (order_no),
+    KEY idx_user_id (user_id),
+    KEY idx_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='订单表';
+
+-- =====================================================
+-- 6. 基础字典表 (sys_dict)
 -- =====================================================
 DROP TABLE IF EXISTS sys_dict;
 CREATE TABLE sys_dict (
