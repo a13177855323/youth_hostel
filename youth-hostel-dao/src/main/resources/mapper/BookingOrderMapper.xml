@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.youth.hostel.dao.mapper.BookingOrderMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.youth.hostel.entity.po.BookingOrder">
+        <id column="id" property="id" />
+        <result column="order_no" property="orderNo" />
+        <result column="user_id" property="userId" />
+        <result column="room_id" property="roomId" />
+        <result column="room_no" property="roomNo" />
+        <result column="room_name" property="roomName" />
+        <result column="room_type" property="roomType" />
+        <result column="check_in_date" property="checkInDate" />
+        <result column="check_out_date" property="checkOutDate" />
+        <result column="stay_days" property="stayDays" />
+        <result column="guest_name" property="guestName" />
+        <result column="guest_phone" property="guestPhone" />
+        <result column="guest_id_card" property="guestIdCard" />
+        <result column="guest_count" property="guestCount" />
+        <result column="room_price" property="roomPrice" />
+        <result column="total_amount" property="totalAmount" />
+        <result column="deposit" property="deposit" />
+        <result column="discount_amount" property="discountAmount" />
+        <result column="pay_amount" property="payAmount" />
+        <result column="pay_type" property="payType" />
+        <result column="pay_time" property="payTime" />
+        <result column="pay_trade_no" property="payTradeNo" />
+        <result column="order_status" property="orderStatus" />
+        <result column="check_in_time" property="checkInTime" />
+        <result column="check_out_time" property="checkOutTime" />
+        <result column="cancel_reason" property="cancelReason" />
+        <result column="cancel_time" property="cancelTime" />
+        <result column="refund_amount" property="refundAmount" />
+        <result column="remark" property="remark" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
+        <result column="create_by" property="createBy" />
+        <result column="update_by" property="updateBy" />
+        <result column="deleted" property="deleted" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, order_no, user_id, room_id, room_no, room_name, room_type, check_in_date, check_out_date, stay_days, guest_name, guest_phone, guest_id_card, guest_count, room_price, total_amount, deposit, discount_amount, pay_amount, pay_type, pay_time, pay_trade_no, order_status, check_in_time, check_out_time, cancel_reason, cancel_time, refund_amount, remark, create_time, update_time, create_by, update_by, deleted
+    </sql>
+
+</mapper>
