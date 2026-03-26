@@ -1,5 +1,7 @@
 package com.youth.hostel.api.controller;
 
+import com.youth.hostel.common.annotation.RequiresPermission;
+import com.youth.hostel.common.context.UserContextHolder;
 import com.youth.hostel.common.result.Result;
 import com.youth.hostel.entity.dto.UserLoginDTO;
 import com.youth.hostel.entity.vo.UserInfoVO;
@@ -19,12 +21,22 @@ public class SysUserController {
 
     @Operation(summary = "用户登录")
     @PostMapping("/login")
+    @RequiresPermission(requireLogin = false)
     public Result<UserInfoVO> login(@RequestBody UserLoginDTO loginDTO) {
         return Result.success(sysUserService.login(loginDTO));
     }
 
-    @Operation(summary = "获取用户信息")
+    @Operation(summary = "获取当前用户信息")
+    @GetMapping("/info")
+    @RequiresPermission
+    public Result<UserInfoVO> getCurrentUserInfo() {
+        Long currentUserId = UserContextHolder.getUserId();
+        return Result.success(sysUserService.getUserInfo(currentUserId));
+    }
+
+    @Operation(summary = "获取指定用户信息（仅管理员）")
     @GetMapping("/info/{userId}")
+    @RequiresPermission(requireAdmin = true)
     public Result<UserInfoVO> getUserInfo(@PathVariable Long userId) {
         return Result.success(sysUserService.getUserInfo(userId));
     }
