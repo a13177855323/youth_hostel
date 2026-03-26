@@ -10,12 +10,15 @@ import com.youth.hostel.entity.po.SysPermission;
 import com.youth.hostel.entity.po.SysRole;
 import com.youth.hostel.entity.po.SysUserRole;
 import com.youth.hostel.service.SysRoleService;
+import com.youth.hostel.util.UserContext;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
 public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> implements SysRoleService {
+
+    private static final String ROLE_ADMIN = "ROLE_ADMIN";
 
     private final SysUserRoleMapper userRoleMapper;
     private final SysPermissionMapper permissionMapper;
@@ -40,9 +43,40 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
 
     @Override
     public void assignRole(Long userId, Long roleId) {
+        // 获取当前登录用户
+        Long currentUserId = UserContext.getUserId();
+        String currentRoleCode = UserContext.getRoleCode();
+
+        if (currentUserId == null) {
+            throw new BusinessException("未登录");
+        }
+
+        // 只有管理员才能分配角色
+        if (!ROLE_ADMIN.equals(currentRoleCode)) {
+            throw new BusinessException("无权限：只有管理员才能分配角色");
+        }
+
+        // 禁止给自己分配角色（防止权限提升攻击）
+        if (currentUserId.equals(userId)) {
+            throw new BusinessException("不能给自己分配角色");
+        }
+
         SysRole role = baseMapper.selectById(roleId);
         if (role == null) {
             throw new BusinessException("角色不存在");
+        }
+
+        // 禁止分配管理员角色给普通用户（只有管理员才能分配管理员角色）
+        if (ROLE_ADMIN.equals(role.getRoleCode()) && !ROLE_ADMIN.equals(currentRoleCode)) {
+            throw new BusinessException("无权限：无法分配管理员角色");
+        }
+
+        // 检查用户是否已有该角色
+        Long count = userRoleMapper.selectCount(new LambdaQueryWrapper<SysUserRole>()
+                .eq(SysUserRole::getUserId, userId)
+                .eq(SysUserRole::getRoleId, roleId));
+        if (count > 0) {
+            throw new BusinessException("该用户已拥有此角色");
         }
 
         SysUserRole userRole = new SysUserRole();
@@ -61,7 +95,7 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
         List<SysPermission> permissions = permissionMapper.selectList(wrapper);
 
         boolean hasPermission = permissions.stream()
-                .anyMatch(p -> roleCodes.contains("ROLE_ADMIN") || p.getPermCode().equals(permCode));
+                .anyMatch(p -> roleCodes.contains(ROLE_ADMIN) || p.getPermCode().equals(permCode));
 
         if (!hasPermission) {
             throw new BusinessException("无权限");
