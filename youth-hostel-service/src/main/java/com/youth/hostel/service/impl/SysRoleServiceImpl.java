@@ -26,9 +26,13 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
     }
 
     @Override
-    public List<SysRole> getUserRoles(Long userId) {
+    public List<SysRole> getUserRoles(Long currentUserId, Long targetUserId) {
+        if (!currentUserId.equals(targetUserId) && !isAdmin(currentUserId)) {
+            throw new BusinessException("无权限查看其他用户角色");
+        }
+
         List<SysUserRole> userRoles = userRoleMapper.selectList(new LambdaQueryWrapper<SysUserRole>()
-                .eq(SysUserRole::getUserId, userId));
+                .eq(SysUserRole::getUserId, targetUserId));
 
         if (userRoles.isEmpty()) {
             return List.of();
@@ -39,7 +43,11 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
     }
 
     @Override
-    public void assignRole(Long userId, Long roleId) {
+    public void assignRole(Long currentUserId, Long userId, Long roleId) {
+        if (!isAdmin(currentUserId)) {
+            throw new BusinessException("只有管理员才能分配角色");
+        }
+
         SysRole role = baseMapper.selectById(roleId);
         if (role == null) {
             throw new BusinessException("角色不存在");
@@ -53,18 +61,38 @@ public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> impl
 
     @Override
     public void checkPermission(Long userId, String permCode) {
-        List<SysRole> roles = getUserRoles(userId);
-        List<String> roleCodes = roles.stream().map(SysRole::getRoleCode).toList();
+        if (isAdmin(userId)) {
+            return;
+        }
 
-        LambdaQueryWrapper<SysPermission> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(SysPermission::getPermCode, permCode);
-        List<SysPermission> permissions = permissionMapper.selectList(wrapper);
-
-        boolean hasPermission = permissions.stream()
-                .anyMatch(p -> roleCodes.contains("ROLE_ADMIN") || p.getPermCode().equals(permCode));
-
-        if (!hasPermission) {
+        List<SysRole> roles = getUserRoles(userId, userId);
+        if (roles.isEmpty()) {
             throw new BusinessException("无权限");
         }
+
+        List<Long> roleIds = roles.stream().map(SysRole::getId).toList();
+
+        LambdaQueryWrapper<SysPermission> wrapper = new LambdaQueryWrapper<>();
+        wrapper.in(SysPermission::getRoleId, roleIds)
+                .eq(SysPermission::getPermCode, permCode);
+
+        Long count = permissionMapper.selectCount(wrapper);
+        if (count == null || count == 0) {
+            throw new BusinessException("无权限");
+        }
+    }
+
+    private boolean isAdmin(Long userId) {
+        List<SysUserRole> userRoles = userRoleMapper.selectList(new LambdaQueryWrapper<SysUserRole>()
+                .eq(SysUserRole::getUserId, userId));
+
+        if (userRoles.isEmpty()) {
+            return false;
+        }
+
+        List<Long> roleIds = userRoles.stream().map(SysUserRole::getRoleId).toList();
+        List<SysRole> roles = baseMapper.selectBatchIds(roleIds);
+
+        return roles.stream().anyMatch(role -> "ROLE_ADMIN".equals(role.getRoleCode()));
     }
 }
