@@ -7,9 +7,9 @@ import java.util.List;
 
 public interface SysRoleService extends IService<SysRole> {
 
-    List<SysRole> getUserRoles(Long userId);
+    List<SysRole> getUserRoles(Long currentUserId, Long targetUserId);
 
-    void assignRole(Long userId, Long roleId);
+    void assignRole(Long currentUserId, Long userId, Long roleId);
 
     void checkPermission(Long userId, String permCode);
 }
