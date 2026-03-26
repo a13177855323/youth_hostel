@@ -2,6 +2,7 @@ package com.youth.hostel.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.youth.hostel.common.context.UserContextHolder;
 import com.youth.hostel.common.exception.BusinessException;
 import com.youth.hostel.dao.mapper.SysOrderMapper;
 import com.youth.hostel.dao.mapper.SysWalletMapper;
@@ -11,6 +12,7 @@ import com.youth.hostel.service.SysOrderService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -24,7 +26,12 @@ public class SysOrderServiceImpl extends ServiceImpl<SysOrderMapper, SysOrder> i
     }
 
     @Override
-    public String createOrder(Long userId, java.math.BigDecimal totalAmount) {
+    public String createOrder(Long userId, BigDecimal totalAmount) {
+        // 校验订单金额必须为正数
+        if (totalAmount == null || totalAmount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BusinessException("订单金额必须大于0");
+        }
+        
         String orderNo = UUID.randomUUID().toString().replace("-", "");
         SysOrder order = new SysOrder();
         order.setOrderNo(orderNo);
@@ -36,6 +43,7 @@ public class SysOrderServiceImpl extends ServiceImpl<SysOrderMapper, SysOrder> i
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void payOrder(String orderNo) {
         SysOrder order = baseMapper.selectOne(new LambdaQueryWrapper<SysOrder>()
                 .eq(SysOrder::getOrderNo, orderNo));
@@ -48,16 +56,29 @@ public class SysOrderServiceImpl extends ServiceImpl<SysOrderMapper, SysOrder> i
             throw new BusinessException("订单已支付");
         }
 
+        // 权限修复：校验订单所属用户是否为当前登录用户
+        Long currentUserId = UserContextHolder.getUserId();
+        if (currentUserId == null) {
+            throw new BusinessException("请先登录");
+        }
+        if (!order.getUserId().equals(currentUserId)) {
+            throw new BusinessException("只能支付自己的订单");
+        }
+
+        // 先检查钱包是否存在
         SysWallet wallet = walletMapper.selectOne(new LambdaQueryWrapper<SysWallet>()
                 .eq(SysWallet::getUserId, order.getUserId()));
+        if (wallet == null) {
+            throw new BusinessException("钱包不存在");
+        }
 
-        if (wallet == null || wallet.getBalance().compareTo(order.getTotalAmount()) < 0) {
+        // 使用数据库原子操作扣减余额，解决并发超扣
+        int affectedRows = walletMapper.decreaseBalance(order.getUserId(), order.getTotalAmount());
+        if (affectedRows == 0) {
             throw new BusinessException("余额不足");
         }
 
-        wallet.setBalance(wallet.getBalance().subtract(order.getTotalAmount()));
-        walletMapper.updateById(wallet);
-
+        // 更新订单状态
         order.setStatus(1);
         order.setPayTime(LocalDateTime.now());
         baseMapper.updateById(order);
