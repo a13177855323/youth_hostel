@@ -208,3 +208,22 @@ INSERT INTO sys_dict (dict_type, dict_label, dict_value, dict_sort, is_default, 
 ('gender', '未知', '0', 1, 1, '性别-未知'),
 ('gender', '男', '1', 2, 0, '性别-男'),
 ('gender', '女', '2', 3, 0, '性别-女');
+
+-- =====================================================
+-- 5. 用户签到记录表 (sys_user_checkin)
+-- =====================================================
+DROP TABLE IF EXISTS sys_user_checkin;
+CREATE TABLE sys_user_checkin (
+    id              BIGINT          NOT NULL AUTO_INCREMENT COMMENT '签到记录ID',
+    user_id         BIGINT          NOT NULL COMMENT '用户ID',
+    checkin_date    DATE            NOT NULL COMMENT '签到日期',
+    continuous_days INT             DEFAULT 1 COMMENT '连续签到天数',
+    points_earned   INT             DEFAULT 0 COMMENT '本次获得积分',
+    create_time     DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    update_time     DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    deleted         TINYINT         DEFAULT 0 COMMENT '删除标志: 0-未删除 1-已删除',
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_user_date (user_id, checkin_date),
+    KEY idx_user_id (user_id),
+    KEY idx_checkin_date (checkin_date)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户签到记录表';
