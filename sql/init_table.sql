@@ -208,3 +208,38 @@ INSERT INTO sys_dict (dict_type, dict_label, dict_value, dict_sort, is_default, 
 ('gender', '未知', '0', 1, 1, '性别-未知'),
 ('gender', '男', '1', 2, 0, '性别-男'),
 ('gender', '女', '2', 3, 0, '性别-女');
+
+-- =====================================================
+-- 5. 签到记录表 (sys_sign_record)
+-- =====================================================
+DROP TABLE IF EXISTS sys_sign_record;
+CREATE TABLE sys_sign_record (
+    id              BIGINT          NOT NULL AUTO_INCREMENT COMMENT '记录ID',
+    user_id         BIGINT          NOT NULL COMMENT '用户ID',
+    sign_date       DATE            NOT NULL COMMENT '签到日期',
+    reward_points   INT             DEFAULT 0 COMMENT '奖励积分',
+    create_time     DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    update_time     DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    deleted         TINYINT         DEFAULT 0 COMMENT '删除标志: 0-未删除 1-已删除',
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_user_sign_date (user_id, sign_date),
+    KEY idx_user_id (user_id),
+    KEY idx_sign_date (sign_date)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='签到记录表';
+
+-- =====================================================
+-- 6. 用户积分表 (sys_user_points)
+-- =====================================================
+DROP TABLE IF EXISTS sys_user_points;
+CREATE TABLE sys_user_points (
+    id              BIGINT          NOT NULL AUTO_INCREMENT COMMENT '记录ID',
+    user_id         BIGINT          NOT NULL COMMENT '用户ID',
+    total_points    INT             DEFAULT 0 COMMENT '总积分',
+    available_points INT            DEFAULT 0 COMMENT '可用积分',
+    create_time     DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    update_time     DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    deleted         TINYINT         DEFAULT 0 COMMENT '删除标志: 0-未删除 1-已删除',
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_user_id (user_id),
+    KEY idx_user_id (user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户积分表';
