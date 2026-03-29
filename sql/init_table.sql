@@ -132,7 +132,30 @@ CREATE TABLE booking_order (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='预定订单表';
 
 -- =====================================================
--- 4. 基础字典表 (sys_dict)
+-- 4. 房间库存表 (sys_room) - 用于库存管理和乐观锁
+-- =====================================================
+DROP TABLE IF EXISTS sys_room;
+CREATE TABLE sys_room (
+    id              BIGINT          NOT NULL AUTO_INCREMENT COMMENT '房间ID',
+    room_number     VARCHAR(50)     NOT NULL COMMENT '房间编号',
+    room_type       VARCHAR(50)     NOT NULL COMMENT '房型',
+    capacity        INT             DEFAULT 1 COMMENT '容量',
+    price           DECIMAL(10,2)   NOT NULL COMMENT '价格',
+    stock           INT             NOT NULL DEFAULT 0 COMMENT '库存数量',
+    description     VARCHAR(500)    DEFAULT NULL COMMENT '描述',
+    status          TINYINT         DEFAULT 1 COMMENT '状态: 0-禁用 1-启用',
+    version         INT             DEFAULT 0 COMMENT '乐观锁版本号',
+    create_time     DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    update_time     DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    deleted         TINYINT         DEFAULT 0 COMMENT '删除标志: 0-未删除 1-已删除',
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_room_number (room_number),
+    KEY idx_room_type (room_type),
+    KEY idx_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='房间库存表';
+
+-- =====================================================
+-- 5. 基础字典表 (sys_dict)
 -- =====================================================
 DROP TABLE IF EXISTS sys_dict;
 CREATE TABLE sys_dict (

@@ -1,6 +1,7 @@
 package com.youth.hostel.entity.po;
 
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.Version;
 import com.youth.hostel.entity.base.BaseEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -25,4 +26,7 @@ public class SysRoom extends BaseEntity {
     private String description;
 
     private Integer status;
+
+    @Version
+    private Integer version;
 }

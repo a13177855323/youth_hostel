@@ -7,11 +7,13 @@ import com.youth.hostel.entity.dto.RoomBookDTO;
 import com.youth.hostel.entity.po.SysRoom;
 import com.youth.hostel.service.SysRoomService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class SysRoomServiceImpl extends ServiceImpl<SysRoomMapper, SysRoom> implements SysRoomService {
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void bookRoom(RoomBookDTO bookDTO) {
         SysRoom room = baseMapper.selectById(bookDTO.getRoomId());
         if (room == null) {
@@ -23,6 +25,10 @@ public class SysRoomServiceImpl extends ServiceImpl<SysRoomMapper, SysRoom> impl
         }
 
         room.setStock(room.getStock() - bookDTO.getQuantity());
-        baseMapper.updateById(room);
+        int affected = baseMapper.updateById(room);
+
+        if (affected == 0) {
+            throw new BusinessException("预订失败，请重试");
+        }
     }
 }
