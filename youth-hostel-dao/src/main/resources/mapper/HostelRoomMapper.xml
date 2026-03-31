@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.youth.hostel.dao.mapper.HostelRoomMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.youth.hostel.entity.po.HostelRoom">
+        <id column="id" property="id" />
+        <result column="room_no" property="roomNo" />
+        <result column="room_name" property="roomName" />
+        <result column="room_type" property="roomType" />
+        <result column="bed_type" property="bedType" />
+        <result column="bed_count" property="bedCount" />
+        <result column="floor" property="floor" />
+        <result column="area" property="area" />
+        <result column="price" property="price" />
+        <result column="deposit" property="deposit" />
+        <result column="facilities" property="facilities" />
+        <result column="images" property="images" />
+        <result column="description" property="description" />
+        <result column="max_occupancy" property="maxOccupancy" />
+        <result column="has_window" property="hasWindow" />
+        <result column="has_bathroom" property="hasBathroom" />
+        <result column="has_aircon" property="hasAircon" />
+        <result column="status" property="status" />
+        <result column="sort_order" property="sortOrder" />
+        <result column="remark" property="remark" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
+        <result column="create_by" property="createBy" />
+        <result column="update_by" property="updateBy" />
+        <result column="deleted" property="deleted" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, room_no, room_name, room_type, bed_type, bed_count, floor, area, price, deposit, facilities, images, description, max_occupancy, has_window, has_bathroom, has_aircon, status, sort_order, remark, create_time, update_time, create_by, update_by, deleted
+    </sql>
+
+</mapper>
