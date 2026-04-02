@@ -4,11 +4,6 @@
 -- 字符集: utf8mb4
 -- =====================================================
 
--- 创建数据库
-CREATE DATABASE IF NOT EXISTS youth_hostel DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
-USE youth_hostel;
-
 -- =====================================================
 -- 1. 用户/会员表 (sys_user)
 -- =====================================================
