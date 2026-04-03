@@ -11,6 +11,7 @@ import com.youth.hostel.service.SysOrderService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -24,7 +25,11 @@ public class SysOrderServiceImpl extends ServiceImpl<SysOrderMapper, SysOrder> i
     }
 
     @Override
-    public String createOrder(Long userId, java.math.BigDecimal totalAmount) {
+    public String createOrder(Long userId, BigDecimal totalAmount) {
+        if (totalAmount == null || totalAmount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BusinessException("订单金额必须大于0");
+        }
+
         String orderNo = UUID.randomUUID().toString().replace("-", "");
         SysOrder order = new SysOrder();
         order.setOrderNo(orderNo);
@@ -36,6 +41,7 @@ public class SysOrderServiceImpl extends ServiceImpl<SysOrderMapper, SysOrder> i
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void payOrder(String orderNo) {
         SysOrder order = baseMapper.selectOne(new LambdaQueryWrapper<SysOrder>()
                 .eq(SysOrder::getOrderNo, orderNo));
@@ -51,12 +57,20 @@ public class SysOrderServiceImpl extends ServiceImpl<SysOrderMapper, SysOrder> i
         SysWallet wallet = walletMapper.selectOne(new LambdaQueryWrapper<SysWallet>()
                 .eq(SysWallet::getUserId, order.getUserId()));
 
-        if (wallet == null || wallet.getBalance().compareTo(order.getTotalAmount()) < 0) {
+        if (wallet == null) {
+            throw new BusinessException("钱包不存在");
+        }
+
+        if (wallet.getBalance().compareTo(order.getTotalAmount()) < 0) {
             throw new BusinessException("余额不足");
         }
 
         wallet.setBalance(wallet.getBalance().subtract(order.getTotalAmount()));
-        walletMapper.updateById(wallet);
+        int affected = walletMapper.updateById(wallet);
+
+        if (affected == 0) {
+            throw new BusinessException("支付失败，请重试");
+        }
 
         order.setStatus(1);
         order.setPayTime(LocalDateTime.now());
