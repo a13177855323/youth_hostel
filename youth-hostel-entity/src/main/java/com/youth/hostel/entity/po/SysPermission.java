@@ -10,6 +10,8 @@ import lombok.EqualsAndHashCode;
 @TableName("sys_permission")
 public class SysPermission extends BaseEntity {
 
+    private Long roleId;
+
     private String permName;
 
     private String permCode;
